@@ -19,6 +19,34 @@ export default async function CargoLaptopPage({
 
   const d = DEFAULT_CARGO_LAPTOP;
 
+  const knownKeys = new Set([
+    "empresaNombre",
+    "empresaRuc",
+    "empresaDireccion",
+    "empresaTelefonos",
+    "nombre",
+    "dni",
+    "marca",
+    "modelo",
+    "color",
+    "ram",
+    "capacidad",
+    "serie",
+    "accesorios",
+    "fecha",
+    "logoSrc",
+    "documentoId",
+    "token",
+    "mode",
+  ]);
+
+  const meta: Record<string, string> = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string" && !knownKeys.has(key)) {
+      meta[key] = value;
+    }
+  }
+
   const data: CargoLaptopData = {
     empresa: {
       nombre: str("empresaNombre", DEFAULT_EMPRESA.nombre),
@@ -46,7 +74,12 @@ export default async function CargoLaptopPage({
 
   return (
     <main className="min-h-screen bg-neutral-200 py-6 print:bg-white print:py-0">
-      <CargoLaptopSigner data={data} />
+      <CargoLaptopSigner
+        data={data}
+        documentoId={str("documentoId", "")}
+        token={str("token", "")}
+        meta={Object.keys(meta).length > 0 ? meta : undefined}
+      />
     </main>
   );
 }

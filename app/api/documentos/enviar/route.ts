@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import {
   generateCargoLaptopPdf,
@@ -62,6 +62,34 @@ async function saveMockLocal(params: {
     pdfPath: path.relative(process.cwd(), pdfPath).replace(/\\/g, "/"),
     metaPath: path.relative(process.cwd(), metaPath).replace(/\\/g, "/"),
   };
+}
+
+const RECORD_FILE = path.join(process.cwd(), "storage", "firmados", "enviados.json");
+
+async function alreadySent(documentoId: string): Promise<boolean> {
+  try {
+    const raw = await readFile(RECORD_FILE, "utf8");
+    const records = JSON.parse(raw) as Record<string, string>;
+    return Boolean(records[documentoId]);
+  } catch {
+    return false;
+  }
+}
+
+async function recordSent(documentoId: string, sentAt: string): Promise<void> {
+  const dir = path.dirname(RECORD_FILE);
+  await mkdir(dir, { recursive: true });
+
+  let records: Record<string, string> = {};
+  try {
+    const raw = await readFile(RECORD_FILE, "utf8");
+    records = JSON.parse(raw) as Record<string, string>;
+  } catch {
+    records = {};
+  }
+
+  records[documentoId] = sentAt;
+  await writeFile(RECORD_FILE, JSON.stringify(records, null, 2), "utf8");
 }
 
 async function forwardToBackend(payload: SignedDocumentPayload) {
@@ -134,7 +162,21 @@ export async function POST(request: NextRequest) {
 
   const documentoId =
     body.documentoId?.trim() ||
-    `cargo-laptop_${body.dni}_${Date.now()}`;
+    `cargo-laptop_${safeId(body.dni ?? "desconocido")}_${safeId(body.fecha ?? "")}`;
+
+  const mode = getSubmitMode();
+
+  if (await alreadySent(documentoId)) {
+    return Response.json(
+      {
+        error:
+          "El documento ya fue enviado. Solo se permite un envío por documento.",
+        documentoId,
+        alreadySent: true,
+      },
+      { status: 409 },
+    );
+  }
 
   try {
     const pdf = await generateCargoLaptopPdf(request.nextUrl.origin, body);
@@ -169,7 +211,6 @@ export async function POST(request: NextRequest) {
       meta: body.meta,
     };
 
-    const mode = getSubmitMode();
     const result: {
       ok: true;
       documentoId: string;
@@ -189,6 +230,8 @@ export async function POST(request: NextRequest) {
     if (mode === "forward" || mode === "both") {
       result.backend = await forwardToBackend(payload);
     }
+
+    await recordSent(documentoId, new Date().toISOString());
 
     return Response.json(result, { status: 200 });
   } catch (error) {

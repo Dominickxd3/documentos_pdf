@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const pdf = await generateCargoLaptopPdf(request.nextUrl.origin, body);
-    return new Response(pdf, {
+    return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const pdf = await generateCargoLaptopPdf(request.nextUrl.origin, body);
-    return new Response(pdf, {
+    return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
