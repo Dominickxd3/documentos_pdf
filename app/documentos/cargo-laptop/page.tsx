@@ -1,21 +1,9 @@
-import CargoLaptop from "@/components/CargoLaptop";
-
-const demoData = {
-  empleado: {
-    nombre: "JUAN PÉREZ GARCÍA",
-    dni: "12345678",
-  },
-  equipo: {
-    marca: "Lenovo",
-    modelo: "ThinkPad E14",
-    color: "Negro",
-    ram: "16 GB",
-    capacidad: "512 GB SSD",
-    serie: "PF3ABCDE",
-    accesorios: "Cargador, maletín",
-  },
-  fecha: "08 de agosto de 2026",
-};
+import CargoLaptopSigner from "@/components/CargoLaptopSigner";
+import {
+  DEFAULT_CARGO_LAPTOP,
+  DEFAULT_EMPRESA,
+  type CargoLaptopData,
+} from "@/lib/documentos/cargo-laptop";
 
 export default async function CargoLaptopPage({
   searchParams,
@@ -29,26 +17,36 @@ export default async function CargoLaptopPage({
     return typeof v === "string" && v.length > 0 ? v : fallback;
   };
 
-  const data = {
+  const d = DEFAULT_CARGO_LAPTOP;
+
+  const data: CargoLaptopData = {
+    empresa: {
+      nombre: str("empresaNombre", DEFAULT_EMPRESA.nombre),
+      ruc: str("empresaRuc", DEFAULT_EMPRESA.ruc),
+      direccion: str("empresaDireccion", DEFAULT_EMPRESA.direccion),
+      telefonos: str("empresaTelefonos", DEFAULT_EMPRESA.telefonos),
+    },
     empleado: {
-      nombre: str("nombre", demoData.empleado.nombre),
-      dni: str("dni", demoData.empleado.dni),
+      nombre: str("nombre", d.empleado.nombre),
+      dni: str("dni", d.empleado.dni),
     },
     equipo: {
-      marca: str("marca", demoData.equipo.marca),
-      modelo: str("modelo", demoData.equipo.modelo),
-      color: str("color", demoData.equipo.color),
-      ram: str("ram", demoData.equipo.ram),
-      capacidad: str("capacidad", demoData.equipo.capacidad),
-      serie: str("serie", demoData.equipo.serie),
-      accesorios: str("accesorios", demoData.equipo.accesorios),
+      marca: str("marca", d.equipo.marca),
+      modelo: str("modelo", d.equipo.modelo),
+      color: str("color", d.equipo.color),
+      ram: str("ram", d.equipo.ram),
+      capacidad: str("capacidad", d.equipo.capacidad),
+      serie: str("serie", d.equipo.serie),
+      accesorios: str("accesorios", d.equipo.accesorios),
     },
-    fecha: str("fecha", demoData.fecha),
+    fecha: str("fecha", d.fecha),
+    logoSrc: str("logoSrc", d.logoSrc ?? "/logo.png"),
+    signatureField: d.signatureField,
   };
 
   return (
-    <main className="min-h-screen bg-neutral-200 py-8 print:bg-white print:py-0">
-      <CargoLaptop {...data} />
+    <main className="min-h-screen bg-neutral-200 py-6 print:bg-white print:py-0">
+      <CargoLaptopSigner data={data} />
     </main>
   );
 }

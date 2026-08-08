@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated signed PDFs
+/storage/firmados/*
+!/storage/firmados/.gitkeep

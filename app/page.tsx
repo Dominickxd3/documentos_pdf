@@ -12,13 +12,13 @@ export default function Home() {
         >
           Ver cargo laptop
         </Link>
-        <a
-          href="/api/pdf"
-          className="rounded border border-black px-4 py-2"
-        >
+        <a href="/api/pdf" className="rounded border border-black px-4 py-2">
           Descargar PDF
         </a>
       </div>
+      <p className="max-w-md text-center text-sm text-neutral-500">
+        Coloca el logo oficial en <code className="text-xs">public/logo.png</code>
+      </p>
     </main>
   );
 }
