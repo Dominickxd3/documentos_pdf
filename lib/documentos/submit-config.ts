@@ -34,15 +34,21 @@ export function getBackendApiKey(): string | null {
 export type SignedDocumentPayload = {
   documentoId: string;
   token?: string;
-  tipo: "cargo-laptop";
+  tipo: "cargo-laptop" | "cargo-devolucion-laptop";
   firmadoEn: string;
   empresa: {
     nombre: string;
     ruc: string;
     direccion: string;
     telefonos: string;
+    correo1?: string;
+    correo2?: string;
   };
   empleado: {
+    nombre: string;
+    dni: string;
+  };
+  responsable?: {
     nombre: string;
     dni: string;
   };

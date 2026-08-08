@@ -6,6 +6,10 @@ import {
   type CargoLaptopPdfInput,
 } from "@/lib/pdf/generate-cargo-laptop-pdf";
 import {
+  generateCargoDevolucionLaptopPdf,
+  type CargoDevolucionLaptopPdfInput,
+} from "@/lib/pdf/generate-cargo-devolucion-laptop-pdf";
+import {
   getBackendApiKey,
   getBackendSubmitUrl,
   getSubmitMode,
@@ -16,11 +20,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-type EnviarBody = CargoLaptopPdfInput & {
-  documentoId?: string;
-  token?: string;
-  meta?: Record<string, string>;
-};
+type EnviarBody = CargoLaptopPdfInput &
+  CargoDevolucionLaptopPdfInput & {
+    tipo?: "cargo-laptop" | "cargo-devolucion-laptop";
+    documentoId?: string;
+    token?: string;
+    meta?: Record<string, string>;
+  };
 
 function stripDataUrl(dataUrl?: string): string | undefined {
   if (!dataUrl) return undefined;
@@ -160,9 +166,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const isDevolucion = body.tipo === "cargo-devolucion-laptop";
+
   const documentoId =
     body.documentoId?.trim() ||
-    `cargo-laptop_${safeId(body.dni ?? "desconocido")}_${safeId(body.fecha ?? "")}`;
+    `${isDevolucion ? "cargo-devolucion" : "cargo-laptop"}_${safeId(body.dni ?? "desconocido")}_${safeId(body.fecha ?? "")}`;
 
   const mode = getSubmitMode();
 
@@ -179,23 +187,33 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const pdf = await generateCargoLaptopPdf(request.nextUrl.origin, body);
+    const pdf = isDevolucion
+      ? await generateCargoDevolucionLaptopPdf(request.nextUrl.origin, body)
+      : await generateCargoLaptopPdf(request.nextUrl.origin, body);
 
     const payload: SignedDocumentPayload = {
       documentoId,
       token: body.token,
-      tipo: "cargo-laptop",
+      tipo: isDevolucion ? "cargo-devolucion-laptop" : "cargo-laptop",
       firmadoEn: new Date().toISOString(),
       empresa: {
         nombre: body.empresaNombre ?? "",
         ruc: body.empresaRuc ?? "",
         direccion: body.empresaDireccion ?? "",
         telefonos: body.empresaTelefonos ?? "",
+        correo1: body.empresaCorreo1,
+        correo2: body.empresaCorreo2,
       },
       empleado: {
         nombre: body.nombre ?? "",
         dni: body.dni ?? "",
       },
+      responsable: isDevolucion
+        ? {
+            nombre: body.responsableNombre ?? "",
+            dni: body.responsableDni ?? "",
+          }
+        : undefined,
       equipo: {
         marca: body.marca ?? "",
         modelo: body.modelo ?? "",

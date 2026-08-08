@@ -12,8 +12,20 @@ export default function Home() {
         >
           Ver cargo laptop
         </Link>
+        <Link
+          href="/documentos/cargo-devolucion"
+          className="rounded bg-black px-4 py-2 text-white"
+        >
+          Ver cargo devolución
+        </Link>
         <a href="/api/pdf" className="rounded border border-black px-4 py-2">
           Descargar PDF
+        </a>
+        <a
+          href="/api/pdf/devolucion"
+          className="rounded border border-black px-4 py-2"
+        >
+          Descargar PDF devolución
         </a>
       </div>
       <p className="max-w-md text-center text-sm text-neutral-500">
